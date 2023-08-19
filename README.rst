@@ -4,8 +4,8 @@ nü-map
 nü-map (or nümap/numap) is the second revision of NCC Group's
 python based USB host security assessment tool.
 
-**This version of nü-map has been modified as part of `"Profilprojekt Anwendungsforschung in der Informatik"<https://tu-dresden.de/ing/informatik/ressourcen/dateien/studium/modulbeschreibungen/inf-pm-fpa.pdf>`_.
-The project was repaired, OS detection, efficient string modification and more devices were added.
+**This version of nü-map has been modified as part of** `Profilprojekt Anwendungsforschung in der Informatik <https://tu-dresden.de/ing/informatik/ressourcen/dateien/studium/modulbeschreibungen/inf-pm-fpa.pdf>`_.
+**The project was repaired, OS detection, efficient string modification and more devices were added.
 Fuzzing and exhaustive device emulation were not addressed and thus may not work anymore.**
 
 This revision will have all the features that
