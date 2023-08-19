@@ -386,10 +386,12 @@ class USBCDCDevice(USBDevice):
                     usage_type=USBEndpoint.usage_type_data,
                     max_packet_size=0x40,
                     interval=9,
-                    handler=self.handle_ep3_buffer_available
+                    handler=self.handle_ep3_buffer_available,
+                    usb_class=cdc_cls
                 )
             ],
             cs_interfaces=cs_interfaces,
+            usb_class=cdc_cls,
         )
         interfaces.insert(0, control_interface)
         super(USBCDCDevice, self).__init__(
@@ -410,7 +412,9 @@ class USBCDCDevice(USBDevice):
                     index=1, string='Emulated CDC',
                     interfaces=interfaces,
                 )
-            ])
+            ],
+            usb_class=cdc_cls
+        )
 
     def get_default_class(self, app, phy):
         if self._default_cls is None:

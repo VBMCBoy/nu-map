@@ -21,13 +21,13 @@ class NumapApp(object):
             self.options = {}
         self.umap_class_dict = {
             'audio': ('audio', 'Headset'),
-            'billboard': ('billboard', 'A billboard, requires USB 2.1 and higher'),
+            'billboard': ('billboard', 'A billboard, requires USB-C'),
             'cdc_acm': ('cdc_acm', 'Abstract Control Model device (like serial modem)'),
             'cdc_dl': ('cdc_dl', 'Direct Line Control device (like modem)'),
             'ftdi': ('ftdi', 'USB<->RS232 FTDI chip'),
             'hub': ('hub', 'USB hub'),
             'keyboard': ('keyboard', 'Keyboard'),
-            'mass_storage': ('mass_storage', 'Disk on key'),
+            'mass_storage': ('mass_storage', 'Mass Storage device (e.g. thumb drive)'),
             'mtp': ('mtp', 'Android phone'),
             'printer': ('printer', 'Printer'),
             'smartcard': ('smartcard', 'USB<->smart card interface'),
@@ -45,14 +45,15 @@ class NumapApp(object):
             # verbose is added by numap.__init__ module
             2: logging.VERBOSE,
         }
-        verbose = self.options.get('--verbose', 0)
+        verbose = int(self.options.get('--verbose', 0))
         logger = logging.getLogger('numap')
-        if verbose in levels:
-            set_default_handler_level(levels[verbose])
-        else:
-            set_default_handler_level(logging.VERBOSE)
-        if self.options.get('--quiet', False):
-            set_default_handler_level(logging.WARNING)
+        logger.setLevel(verbose)
+#       if verbose in levels:
+#           set_default_handler_level(levels[verbose])
+#       else:
+#           set_default_handler_level(logging.VERBOSE)
+#       if self.options.get('--quiet', False):
+#           set_default_handler_level(logging.WARNING)
         return logger
 
     def load_phy(self, phy_string):

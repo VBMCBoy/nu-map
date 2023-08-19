@@ -27,6 +27,7 @@ class NumapScanApp(NumapApp):
         super(NumapScanApp, self).__init__(options)
         self.current_usb_function_supported = False
         self.start_time = 0
+        self.reasons = set()
 
     def usb_function_supported(self, reason=None):
         '''
@@ -36,6 +37,8 @@ class NumapScanApp(NumapApp):
         :param reason: reason why we decided it is supported (default: None)
         '''
         self.current_usb_function_supported = True
+        if reason:
+            self.reasons.add(reason)
 
     def run(self):
         self.logger.always('Scanning host for supported devices')
@@ -54,14 +57,16 @@ class NumapScanApp(NumapApp):
             phy.disconnect()
             if self.current_usb_function_supported:
                 self.logger.always('Device is SUPPORTED')
+                self.logger.always(self.reasons)
                 supported.append(device_name)
             self.current_usb_function_supported = False
             time.sleep(2)
-        if len(supported):
+
+        if supported:
             self.logger.always('---------------------------------')
             self.logger.always('Found %s supported device(s):' % (len(supported)))
             for i, device_name in enumerate(supported):
-                self.logger.always('%d. %s' % (i + 1, device_name))
+                self.logger.always(f'{i+1}. {device_name} ({self.umap_class_dict[device_name][1]})')
 
     def should_stop_phy(self):
         # if self.current_usb_function_supported:

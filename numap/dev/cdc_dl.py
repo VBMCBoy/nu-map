@@ -1,4 +1,6 @@
 '''
+Implement a Communication Device Class (CDC) Direct Line (DL) device.
+The specification for this device may be found in CDC120-20101113-track.pdf
 and in PSTN120.pdf.
 '''
 import struct

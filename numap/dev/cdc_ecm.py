@@ -15,12 +15,12 @@ from numap.dev.cdc import DataInterfaceClassProtocolCodes
 from numap.dev.cdc import FunctionalDescriptor as FD
 
 
-class USBCdcAcmDevice(USBCDCDevice):
+class USBCdcEemDevice(USBCDCDevice):
 
-    name = 'CDC ACM Device'
+    name = 'CDC EEM Device'
 
-    bControlSubclass = CommunicationClassSubclassCodes.AbstractControlModel
-    bControlProtocol = CommunicationClassProtocolCodes.AtCommands_v250
+    bControlSubclass = CommunicationClassSubclassCodes.EthernetEmulationModel
+    bControlProtocol = CommunicationClassProtocolCodes.EthernetEmulationModel
     bDataProtocol = DataInterfaceClassProtocolCodes.NoClassSpecificProtocolRequired
 
     def __init__(self, app, phy, vid=0x2548, pid=0x1001, rev=0x0010, cs_interfaces=None, cdc_cls=None, bmCapabilities=0x01, **kwargs):
@@ -31,7 +31,7 @@ class USBCdcAcmDevice(USBCDCDevice):
             FD(app, phy, FD.Header, b'\x01\x01'),
             # Call Management Functional Descriptor
             FD(app, phy, FD.CM, struct.pack(b'BB', bmCapabilities, USBCDCDevice.bDataInterface)),
-            FD(app, phy, FD.ACM, struct.pack('B', bmCapabilities)),
+            FD(app, phy, FD.EN, struct.pack('B', bmCapabilities)),
             FD(app, phy, FD.UN, struct.pack(b'BB', USBCDCDevice.bControlInterface, USBCDCDevice.bDataInterface)),
         ]
         interfaces = [
@@ -72,7 +72,7 @@ class USBCdcAcmDevice(USBCDCDevice):
                 usb_class=cdc_cls
             )
         ]
-        super(USBCdcAcmDevice, self).__init__(
+        super(USBCdcEemDevice, self).__init__(
             app, phy,
             vid=vid, pid=pid, rev=rev,
             interfaces=interfaces, cs_interfaces=cs_interfaces, cdc_cls=cdc_cls,
@@ -100,4 +100,4 @@ class USBCdcAcmDevice(USBCDCDevice):
         )
 
 
-usb_device = USBCdcAcmDevice
+usb_device = USBCdcEemDevice

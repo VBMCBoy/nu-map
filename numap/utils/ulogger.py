@@ -20,16 +20,16 @@ def prepare_logging():
         logging.Logger.always = add_debug_level(100, 'ALWAYS')
 
         FORMAT = '[%(levelname)-6s] %(message)s'
-        stdio_handler = logging.StreamHandler()
-        stdio_handler.setLevel(logging.INFO)
+#       stdio_handler = logging.StreamHandler()
+#       stdio_handler.setLevel(logging.INFO)
         formatter = logging.Formatter(FORMAT)
-        stdio_handler.setFormatter(formatter)
+#       stdio_handler.setFormatter(formatter)
         numap_logger = logging.getLogger('numap')
-        numap_logger.addHandler(stdio_handler)
-        numap_logger.setLevel(logging.VERBOSE)
+#       numap_logger.addHandler(stdio_handler)
+#       numap_logger.setLevel(logging.VERBOSE)
     return numap_logger
 
 
 def set_default_handler_level(level):
     global stdio_handler
-    stdio_handler.setLevel(level)
+#   stdio_handler.setLevel(level)

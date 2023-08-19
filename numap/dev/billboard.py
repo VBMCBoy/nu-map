@@ -5,12 +5,31 @@ Based on USB_Billboard_Revision_1_0_20140801.pdf
 All references in this script ar to this pdf.
 '''
 import struct
+
+from numap.core.usb_interface import USBInterface
 from numap.core.usb_device import USBDevice
 from numap.core.usb_class import USBClass
 from numap.core.usb_configuration import USBConfiguration
 from numap.core.usb_bos import USBBinaryObjectStore
 from numap.core.usb_device_capability import USBDeviceCapability, DCContainerId
 
+
+class USBBillboardInterface(USBInterface):
+    name = 'BillboardInterface'
+
+    def __init__(self, app, phy):
+
+        super().__init__(
+            app=app,
+            phy=phy,
+            interface_number=0,
+            interface_alternate=0,
+            interface_class=0,
+            interface_subclass=0,
+            interface_protocol=0,
+            interface_string_index=0,
+            endpoints=[],
+        )
 
 class DCBillboard(USBDeviceCapability):
     '''Section 3.1.5.2'''
@@ -39,17 +58,21 @@ class DCBillboard(USBDeviceCapability):
 
 
 class USBBillboardDevice(USBDevice):
+    name = 'BillboardDevice'
 
     def __init__(self, app, phy, vid=0x8312, pid=0x8312, **kwargs):
         usb_class = None
         usb_vendor = None
+        interfaces = [
+            USBBillboardInterface(app=app, phy=phy)
+        ]
         configurations = [
             USBConfiguration(
                 app=app,
                 phy=phy,
                 index=0x1,
                 string='Billboard configuration',
-                interfaces=[],
+                interfaces=interfaces,
                 attributes=0xc0,
                 max_power=0xfa
             )

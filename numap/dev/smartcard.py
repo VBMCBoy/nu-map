@@ -37,7 +37,7 @@ class USBSmartcardClass(USBClass):
 
     @mutable('get_clock_frequencies_response')
     def handle_get_clock_frequencies(self, req):
-        response = ''
+        response = b''
         for frequency in self.interface.clock_frequencies:
             response += struct.pack('<I', frequency)
         response = struct.pack('<I', len(response)) + response
@@ -45,7 +45,7 @@ class USBSmartcardClass(USBClass):
 
     @mutable('get_data_rates_response')
     def handle_get_data_rates(self, req):
-        response = ''
+        response = b''
         for data_rate in self.interface.data_rates:
             response += struct.pack('<I', data_rate)
         response = struct.pack('<I', len(response)) + response
@@ -118,6 +118,8 @@ class USBSmartcardInterface(USBInterface):
         descriptors = {
             DescriptorType.hid: self.get_icc_descriptor
         }
+        # the get_clock_frequencies stage unfortunately crashes, but apparently not because of the large size
+        # (removing many entries does nothing)
         self.clock_frequencies = [
             0x00003267, 0x000064ce, 0x0000c99d, 0x0001933a, 0x00032674, 0x00064ce7,
             0x000c99ce, 0x00025cd7, 0x0003f011, 0x00004334, 0x00008669, 0x00010cd1,
@@ -465,7 +467,7 @@ class USBSmartcardInterface(USBInterface):
     def handle_buffer_available(self):
         if not self.int_q.empty():
             buff = self.int_q.get()
-            self.debug('Sending data to host: %s' % (buff.hex())
+            self.debug('Sending data to host: %s' % (buff.hex()))
             self.send_on_endpoint(3, buff)
         else:
             self.send_on_endpoint(3, b'')

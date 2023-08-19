@@ -150,6 +150,7 @@ class USBHubDevice(USBDevice):
                     attributes=USBConfiguration.ATTR_SELF_POWERED,
                 )
             ],
+            usb_class=USBHubClass(app, phy)
         )
 
 

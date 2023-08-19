@@ -126,7 +126,7 @@ class USBPrinterInterface(USBInterface):
         if not self.writing:
             self.info('Writing PCL file: %s' % self.filename)
 
-        with open(self.filename, b'ab') as out_file:
+        with open(self.filename, 'ab') as out_file:
             self.writing = True
             out_file.write(data)
 
@@ -158,6 +158,7 @@ class USBPrinterDevice(USBDevice):
             manufacturer_string='Hewlett-Packard',
             product_string='HP Color LaserJet CP1515n',
             serial_number_string='00CNC2618971',
+            usb_class=USBPrinterClass,
             configurations=[
                 USBConfiguration(
                     app=app,

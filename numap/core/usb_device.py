@@ -49,14 +49,14 @@ class USBDevice(USBBaseActor, BaseUSBDevice):
         USBBaseActor.__init__(self, app, phy)
         BaseUSBDevice.__init__(self, phy, usb_class, device_subclass, protocol_rel_num, max_packet_size_ep0,
             vendor_id, product_id, device_rev, manufacturer_string, product_string, serial_number_string, configurations, 
-            descriptors)
+            descriptors) #, verbose=6)
 
         self.supported_device_class_trigger = False
         self.supported_device_class_count = 0
 
         self.strings = []
 
-        self.usb_spec_version = 0x0002
+        self.usb_spec_version = 0x0100
         self._device_class = device_class
         self.device_subclass = device_subclass
         self.protocol_rel_num = protocol_rel_num
@@ -114,6 +114,8 @@ class USBDevice(USBBaseActor, BaseUSBDevice):
 
         self.address = 0
         self.endpoints = {}
+
+        self.scheduler.add_task(lambda: self.stop() if self.app.should_stop_phy() else None)
 
     def get_string_id(self, s):
         try:
@@ -263,15 +265,20 @@ class USBDevice(USBBaseActor, BaseUSBDevice):
 
     @mutable('string_descriptor')
     def get_string_descriptor(self, num):
+        # this was the fix done by sprout42 in Facedancer... but it can also be put here and works well
+        # just make encodes conditional...
         self.debug('get_string_descriptor: %#x (%#x)' % (num, len(self.strings)))
+        # return BaseUSBDevice.handle_get_string_descriptor_request(self, num)
         s = None
         if num <= len(self.strings):
-            s = self.strings[num - 1].encode('utf-16')
+            s = self.strings[num - 1]  #.encode('utf-16')
         else:
             if self.configuration:
                 s = self.configuration.get_string_by_id(num)
         if not s:
-            s = self.strings[0].encode('utf-16')
+            s = self.strings[0]  #.encode('utf-16')
+        if type(s) is not bytes:
+            s = s.encode('utf-16')
         # Linux doesn't like the leading 2-byte Byte Order Mark (BOM);
         # FreeBSD is okay without it
         s = s[2:]
