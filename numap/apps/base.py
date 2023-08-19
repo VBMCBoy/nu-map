@@ -22,6 +22,7 @@ class NumapApp(object):
         self.umap_class_dict = {
             'audio': ('audio', 'Headset'),
             'billboard': ('billboard', 'A billboard, requires USB-C'),
+            'bluetooth_cypress': ('bluetooth_cypress', 'A Bluetooth Cypress adapter.'),
             'cdc_acm': ('cdc_acm', 'Abstract Control Model device (like serial modem)'),
             'cdc_dl': ('cdc_dl', 'Direct Line Control device (like modem)'),
             'ftdi': ('ftdi', 'USB<->RS232 FTDI chip'),
