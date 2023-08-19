@@ -25,6 +25,7 @@ class NumapApp(object):
             'bluetooth_cypress': ('bluetooth_cypress', 'A Bluetooth Cypress adapter.'),
             'cdc_acm': ('cdc_acm', 'Abstract Control Model device (like serial modem)'),
             'cdc_ecm': ('cdc_ecm', 'Ethernet Control Model device (Ethernet over USB)'),
+            'cdc_eem': ('cdc_eem', 'Ethernet Emulation Model device (Ethernet over USB)'),
             'cdc_dl': ('cdc_dl', 'Direct Line Control device (like modem)'),
             'ftdi': ('ftdi', 'USB<->RS232 FTDI chip'),
             'hub': ('hub', 'USB hub'),
