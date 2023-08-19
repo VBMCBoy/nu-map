@@ -37,6 +37,7 @@ class NumapApp(object):
             'rndis': ('rndis', 'RNDIS network interface'),
             'smartcard': ('smartcard', 'USB<->smart card interface'),
             'wifi_realtek': ('wifi_realtek', 'Realtek Wifi Adapter'),
+            'wifi_qualcomm': ('wifi_qualcomm', 'Qualcomm Atheros Wifi Adapter'),
         }
         self.umap_classes = sorted(self.umap_class_dict.keys())
         self.logger = self.get_logger()
