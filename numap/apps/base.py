@@ -34,6 +34,7 @@ class NumapApp(object):
             'mass_storage': ('mass_storage', 'Mass Storage device (e.g. thumb drive)'),
             'mtp': ('mtp', 'Android phone'),
             'printer': ('printer', 'Printer'),
+            'rndis': ('rndis', 'RNDIS network interface'),
             'smartcard': ('smartcard', 'USB<->smart card interface'),
         }
         self.umap_classes = sorted(self.umap_class_dict.keys())
