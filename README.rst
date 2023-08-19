@@ -4,13 +4,18 @@ nü-map
 nü-map (or nümap/numap) is the second revision of NCC Group's
 python based USB host security assessment tool.
 
+**This version of nü-map has been modified as part of `"Profilprojekt Anwendungsforschung in der Informatik"<https://tu-dresden.de/ing/informatik/ressourcen/dateien/studium/modulbeschreibungen/inf-pm-fpa.pdf>`_.
+The project was repaired, OS detection, efficient string modification and more devices were added.
+Fuzzing and exhaustive device emulation were not addressed and thus may not work anymore.**
+
 This revision will have all the features that
 were supported in the first revision:
 
 - *numap-emulate* - USB device emulation
 - *numap-scan* - USB host scanning for device support
-- *numap-detect* - USB host OS detection (no implemented yet)
+- *numap-detect* - USB host OS detection
 - *numap-fuzz* - USB host fuzzing
+- *numap-strings* - USB string manipulation
 
 In this revision there will be some additional
 features:
@@ -34,7 +39,7 @@ instead, use pip to install it directly from github:
 
 ::
 
-    $ pip install git+https://github.com/usb-tools/numap.git#egg=numap
+    $ pip install git+https://github.com/VBMCBoy/nu-map.git#egg=numap
 
 
 "Soft" Dependencies
@@ -64,20 +69,7 @@ Hardware
 - `Facedancer <http://goodfet.sourceforge.net/hardware/facedancer21/>`_
   is the recommended hardware for nümap.
   nümap was developed based on it, and you'll get the most support with it.
-- `Raspdancer <http://wiki.yobi.be/wiki/Raspdancer>` is supported on RPi
-- **GadgetFS** is partially supported.
-  This support is very experimental (even more than the rest of nümap)
-  and limited.
-  
-  - BeagleboneBlack starting from Linux kernel 4.4.9 with a patched gadgetfs
-    driver
-  - RaspberryPi Zero W starting from Linux kernel 4.12.0-rc3+ which requires
-    no patches
-  - Since 4.12.0-rc3+ requires no patches, there might be other devices that
-    can be supported, if you know of such device or have made changes to make
-    it run on other devices, please send us a word.
-
-If you are interested, read the **gadget/README.rst** for more information.
+- Umap2 originally supported Raspdancer and GadgetFS, however these were removed when umap2 was forked to nü-map.
 
 Usage
 -----
@@ -188,4 +180,19 @@ We plan to support MTP fuzzing directly from numap in future releases.
 Host OS Detection
 ~~~~~~~~~~~~~~~~~
 
-TBD
+OS detection uses no special command line flags.
+All available fingerprints are tested and the results eventually printed to stdout.
+
+    ::
+
+        $ numap-detect
+
+
+String Manipulation
+~~~~~~~~~~~~~~~~~~~
+
+String Manipulation is currently done interactively with no special command line flags.
+
+    ::
+
+        $ numap-strings
