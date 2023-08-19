@@ -336,6 +336,8 @@ class USBDevice(USBBaseActor, BaseUSBDevice):
         self.debug(req)
         self.debug(self.configurations)
         self.supported_device_class_trigger = True
+        if hasattr(self.app, 'usb_configuration_occurred') and callable(getattr(self.app, 'usb_configuration_occurred')):
+            self.app.usb_configuration_occurred()
 
         # configs are one-based
         if (req.value) > len(self.configurations):
