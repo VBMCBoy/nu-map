@@ -6,6 +6,7 @@ and then we get exception from Max342xPhy
 '''
 import time
 import struct
+import ast
 
 from numap.core.usb_class import USBClass
 from numap.core.usb_device import USBDevice
@@ -14,28 +15,42 @@ from numap.core.usb_interface import USBInterface
 from numap.core.usb_endpoint import USBEndpoint
 from numap.fuzz.helpers import mutable
 
+DEFAULT_DEVICE_ID = '''{\
+ 'MFG': 'Hewlett-Packard',\
+ 'CMD': 'PJL,PML,PCLXL,POSTSCRIPT,PCL',\
+ 'MDL': 'HP Color LaserJet CP1515n',\
+ 'CLS': 'PRINTER',\
+ 'DES': 'Hewlett-Packard Color LaserJet CP1515n',\
+ 'MEM': 'MEM=55MB',\
+ 'COMMENT': 'RES=600x8',\
+}'''
 
 class USBPrinterClass(USBClass):
     name = 'PrinterClass'
+
+    def __init__(self, app, phy):
+        super().__init__(app, phy)
+        self.device_strings = ""
 
     def setup_local_handlers(self):
         self.local_handlers = {
             0x00: self.handle_get_device_id,
         }
 
+    def set_strings(self, strings):
+        self.device_strings = strings
+
     @mutable('get_device_id_response')
     def handle_get_device_id(self, req):
-        device_id_dict = {
-            'MFG': 'Hewlett-Packard',
-            'CMD': 'PJL,PML,PCLXL,POSTSCRIPT,PCL',
-            'MDL': 'HP Color LaserJet CP1515n',
-            'CLS': 'PRINTER',
-            'DES': 'Hewlett-Packard Color LaserJet CP1515n',
-            'MEM': 'MEM=55MB',
-            'COMMENT': 'RES=600x8',
-        }
-        device_id = ';'.join(k + ':' + v for k, v in device_id_dict.items())
-        device_id += ';'
+        if not self.device_strings:
+            self.device_strings = [DEFAULT_DEVICE_ID]
+        # TODO maybe allow more control over the resulting string, if desired
+        if type(self.device_strings[-1]) == str:
+            device_id_dict = ast.literal_eval(self.device_strings[-1])
+            device_id = ';'.join(k + ':' + v for k, v in device_id_dict.items())
+            device_id += ';'
+        else:
+            device_id = self.device_strings[-1]
         length = struct.pack('>H', len(device_id))
         response = length + str.encode(device_id)
         return response
@@ -172,6 +187,8 @@ class USBPrinterDevice(USBDevice):
                 )
             ],
         )
+        self.strings.append(DEFAULT_DEVICE_ID)  # the device_id is the last string in strings, the device class references the string list and always uses the last string
+        self.configurations[0].interfaces[0].usb_class.set_strings(self.strings)
 
 
 usb_device = USBPrinterDevice

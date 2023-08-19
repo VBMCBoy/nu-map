@@ -33,6 +33,7 @@ setup(
             'numap-scan=numap.apps.scan:main',
             'numap-vsscan=numap.apps.vsscan:main',
             'numap-stages=numap.apps.makestages:main',
+            'numap-strings=numap.apps.strings:main',
         ]
     },
     package_data={}

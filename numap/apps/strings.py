@@ -1,133 +1,147 @@
 '''
-Scan device support in USB host
+Explore and modify USB Strings.
 
 Usage:
-    numapscan [-P PHY_INFO] [-q] [-T] [-t TIMEOUT] [-v LEVEL] [-d DEVICE...] [-i DEVICE...]
+    numap-strings [-P PHY_INFO] [-q] [-v LEVEL]
 
 Options:
     -P --phy PHY_INFO           physical layer info, see list below
     -v --verbose LEVEL          verbosity level, higher is more verbose [default: 0]
     -q --quiet                  quiet mode. only print warning/error messages
-    -t --timeout TIMEOUT        timeout of each device test in seconds [default: 5]
-    -T --always-timeout         keep emulating the device until the timeout is reached, regardless of support
-    -d --device DEVICE          test only the specified device(s)
-    -i --ignore DEVICE          do not test the specified device(s)
-                                Ignored devices override requested (-d) devices.
 
 Physical layer:
-    fd:<serial_port>        use facedancer connected to given serial port
-    gadgetfs                use gadgetfs (requires mounting of gadgetfs beforehand)
+    fd:<serial_port>            use facedancer connected to given serial port
+    gadgetfs                    use gadgetfs (requires mounting of gadgetfs beforehand)
 
 Example:
     numapscan -P fd:/dev/ttyUSB0 -q
 '''
-import time
-import traceback
 from numap.apps.base import NumapApp
 
 
-class NumapScanApp(NumapApp):
+# maps the descriptors of devices to indices in the string array
+# TODO this is kinda fragile...
+STRING_LOCATIONS = {
+    'billboard': {
+        'Manufacturer String': 0,
+        'Product String': 1,
+        'Serial Number String': 2,
+        'Configuration String': 3,
+        'Billboard Additional Info String': 4,
+        'Alternate Mode String': 5,
+    },
+    'printer': {
+        'Manufacturer String': 0,
+        'Product String': 1,
+        'Serial Number String': 2,
+        'Configuration String': 3,
+        'Device ID (insert as Python dictionary, will be automatically formatted, bytes are passed as-is; unlimited length)': 4
+    },
+}
+
+STRING_LOCATIONS |= {name: {
+    'Manufacturer String': 0,
+    'Product String': 1,
+    'Serial Number String': 2,
+    'Configuration String': 3
+} for name in ['audio', 'cdc_acm', 'cdc_dl', 'cdc_ecm', 'cdc_eem', 'cdc_ncm', 'ftdi', 'hub', 'keyboard', 'mass_storage', 'mtp', 'rndis', 'smartcard']}
+
+STRING_LOCATIONS |= {name: {
+    'Manufacturer String': 0,
+    'Product String': 1,
+    'Serial Number String': 2,
+} for name in ['bluetooth_cypress', 'wifi_qualcomm', 'wifi_realtek']}
+
+class NumapStringsApp(NumapApp):
 
     def __init__(self, options):
-        super(NumapScanApp, self).__init__(options)
+        super(NumapStringsApp, self).__init__(options)
         self.current_usb_function_supported = False
         self.was_configured = False
         self.start_time = 0
         self.reasons = set()
 
-    def usb_function_supported(self, reason=None):
-        '''
-        Callback from a USB device, notifying that the current USB device
-        is supported by the host.
-
-        :param reason: reason why we decided it is supported (default: None)
-        '''
-        self.current_usb_function_supported = True
-        if reason:
-            self.reasons.add(reason)
-
-    def usb_configuration_occurred(self):
-        '''
-        Callback from a USB device, notifying that the current USB device
-        was configured by the host (a configuration was selected).
-
-        This does not necessarily mean that the device is supported.
-        However, under Windows, devices without a driver are not configured.
-        '''
-
-        self.was_configured = True
-
     def run(self):
-        self.logger.always('Scanning host for supported devices')
         phy = self.load_phy(self.options['--phy'])
-        supported = []
-        unsupported = []
 
-        if self.options['--device']:
-            if set(self.options['--device']).issubset(set(self.umap_classes)):
-                self.umap_classes = list(set(self.options['--device']))
-            else:
-                self.logger.error(f'Unknown requested devices found: {set(self.options["--device"]).difference(set(self.umap_classes))}')
-                self.logger.error(f'Available devices: {self.umap_classes}')
-                exit(1)
+        while True:
+            print('Available devices:')
+            for i, name in enumerate(self.umap_classes):
+                print(f'{i} ({name}): {self.umap_class_dict[name][1]}')
 
-        if self.options['--ignore']:
-            if set(self.options['--ignore']).issubset(set(self.umap_classes)):
-                self.umap_classes = list(set(self.umap_classes) - set(self.options['--ignore']))
-            else:
-                self.logger.error(f'Unknown ignored devices found: {set(self.options["--ignore"]).difference(set(self.umap_classes))}\n'
-                                  f'Available devices are: {self.umap_classes}')
-                exit(1)
-
-        for device_name in self.umap_classes:
-            self.logger.always('Testing support: %s' % (device_name))
+            dev_id = input('Select a device or "e" to exit: ')
+            if dev_id.lower() == 'e':
+                exit(0)
             try:
-                self.start_time = time.time()
-                device = self.load_device(device_name, phy)
-                device.connect()
-                device.run()
-                device.disconnect()
+                dev_id = int(dev_id)
             except:
-                self.logger.error(traceback.format_exc())
-            phy.disconnect()
-            if self.current_usb_function_supported:
-                self.logger.always('Device is SUPPORTED')
-                self.logger.always(self.reasons)
-                supported.append(device_name)
+                print('Could not parse selection as integer.')
+                continue
+            if dev_id in range(len(self.umap_classes)):
+                dev = self.load_device(self.umap_classes[dev_id], phy)
+                print(f'Loaded {self.umap_classes[dev_id]}')
+                dev_name = self.umap_classes[dev_id]
             else:
-                self.logger.always('Device is UNSUPPORTED')
-                if self.was_configured:
-                    self.logger.always('but was configured')
-                unsupported.append((device_name, self.was_configured))
-            self.current_usb_function_supported = False
-            self.was_configured = False
-            time.sleep(2)
+                print('Selection is not valid.')
+                continue
 
-        if supported:
-            self.logger.always('---------------------------------')
-            self.logger.always('Found %s supported device(s):' % (len(supported)))
-            for i, device_name in enumerate(supported):
-                self.logger.always('%d. %s' % (i + 1, device_name))
-        if unsupported:
-            self.logger.always('---------------------------------')
-            self.logger.always('Found %s unsupported device(s):' % (len(unsupported)))
-            for i, device_name in enumerate(unsupported):
-                self.logger.always(f'{i+1}. {device_name[0]}{" (configured)" if device_name[1] else ""}')
+            while True:
+                print('Available strings:')
+                for name, location in STRING_LOCATIONS[dev_name].items():
+                    print(f'{location} {name}:\n\t"{dev.strings[location]}"')
+
+                idx = input('Select string to edit, "s" to start the emulation, "b" to go back to device selection, or "e" to exit: ')
+                if idx == 'b':
+                    break
+                elif idx == 's':
+                    dev.connect()
+                    try:
+                        dev.run()
+                    except KeyboardInterrupt:
+                        dev.disconnect()
+                elif idx == 'e':
+                    exit(0)
+                else:
+                    try:
+                        idx = int(idx)
+                    except:
+                        print('Could not parse selection as integer.')
+                        continue
+                    if idx in range(len(dev.strings)):
+                        string_name = [x for x, y in STRING_LOCATIONS[dev_name].items() if y == idx][0]
+                        print(f'Selected {string_name}')
+                        sel = input('Input bytes as hex? Otherwise string will be converted to UTF-16 [y/N] ')
+                        if not sel or sel.lower() == 'n':
+                            use_bytes = False
+                        elif sel.lower() == 'y':
+                            use_bytes = True
+                        else:
+                            print('Invalid selection.')
+                            continue
+                        data = input('Data: ')
+                        if not (string_name.startswith('Device ID') and dev_name == 'printer'):  # printer ID can be arbitrarily large
+                            if not use_bytes:
+                                if len(data.encode('UTF-16')) > 255:
+                                    print(f'A String Descriptor can be at most 0xff bytes long when encoded as UTF-16 (got {len(data.encode("UTF-16"))})')
+                                    continue
+                            else:
+                                data = bytes.fromhex(data)
+                                if len(data) > 255:
+                                    print(f'A String Descriptor can be at most 0xff bytes long (got {len(data)})')
+                                    continue
+                        dev.strings[idx] = data
+                        continue
+                    else:
+                        print('Selection is not valid.')
+                        continue
+
 
     def should_stop_phy(self):
-        if self.current_usb_function_supported and not self.options.get('--always-timeout', False):
-            self.logger.debug('Current USB device is supported, stopping phy')
-            return True
-        stop_phy = False
-        passed = int(time.time() - self.start_time)
-        if passed > int(self.options['--timeout']):
-            self.logger.info('have been waiting long enough (over %d secs.), disconnect' % (passed))
-            stop_phy = True
-        return stop_phy
+        return False
 
 
 def main():
-    app = NumapScanApp(__doc__)
+    app = NumapStringsApp(__doc__)
     app.run()
 
 
