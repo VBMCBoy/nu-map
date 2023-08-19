@@ -24,6 +24,7 @@ class NumapApp(object):
             'billboard': ('billboard', 'A billboard, requires USB-C'),
             'bluetooth_cypress': ('bluetooth_cypress', 'A Bluetooth Cypress adapter.'),
             'cdc_acm': ('cdc_acm', 'Abstract Control Model device (like serial modem)'),
+            'cdc_ecm': ('cdc_ecm', 'Ethernet Control Model device (Ethernet over USB)'),
             'cdc_dl': ('cdc_dl', 'Direct Line Control device (like modem)'),
             'ftdi': ('ftdi', 'USB<->RS232 FTDI chip'),
             'hub': ('hub', 'USB hub'),
