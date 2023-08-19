@@ -27,6 +27,7 @@ class NumapApp(object):
             'cdc_ecm': ('cdc_ecm', 'Ethernet Control Model device (Ethernet over USB)'),
             'cdc_eem': ('cdc_eem', 'Ethernet Emulation Model device (Ethernet over USB)'),
             'cdc_dl': ('cdc_dl', 'Direct Line Control device (like modem)'),
+            'cdc_ncm': ('cdc_ncm', 'Network Control Model device (Ethernet over USB)'),
             'ftdi': ('ftdi', 'USB<->RS232 FTDI chip'),
             'hub': ('hub', 'USB hub'),
             'keyboard': ('keyboard', 'Keyboard'),

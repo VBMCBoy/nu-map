@@ -1,8 +1,7 @@
 '''
-Implement a Communication Device Class (CDC) Abstract Control Class (ACM)
+Implement a Communication Device Class (CDC) Network Control Model (NCM)
 device.
-The specification for this device may be found in CDC120-20101113-track.pdf
-and in PSTN120.pdf.
+The specification for this device may be found in NCM10-20101124-track.pdf
 '''
 import struct
 from numap.core.usb_interface import USBInterface
@@ -15,13 +14,15 @@ from numap.dev.cdc import DataInterfaceClassProtocolCodes
 from numap.dev.cdc import FunctionalDescriptor as FD
 
 
-class USBCdcEemDevice(USBCDCDevice):
+class USBCdcNcmDevice(USBCDCDevice):
 
-    name = 'CDC EEM Device'
+    name = 'CDC NCM Device'
 
-    bControlSubclass = CommunicationClassSubclassCodes.EthernetEmulationModel
-    bControlProtocol = CommunicationClassProtocolCodes.EthernetEmulationModel
-    bDataProtocol = DataInterfaceClassProtocolCodes.NoClassSpecificProtocolRequired
+    bControlSubclass = CommunicationClassSubclassCodes.NetworkControlModel
+    # TODO check both 0x00 (NoClassSpecificProtocolRequired) and 0xfe (ExternalProtocol)?
+    # TODO this requires implementing two devices...?
+    bControlProtocol = CommunicationClassProtocolCodes.NoClassSpecificProtocolRequired
+    bDataProtocol = DataInterfaceClassProtocolCodes.NetworkTransferBlock
 
     def __init__(self, app, phy, vid=0x2548, pid=0x1001, rev=0x0010, cs_interfaces=None, cdc_cls=None, bmCapabilities=0x01, **kwargs):
         if cdc_cls is None:
@@ -30,8 +31,29 @@ class USBCdcEemDevice(USBCDCDevice):
             # Header Functional Descriptor
             FD(app, phy, FD.Header, b'\x01\x01'),
             # Call Management Functional Descriptor
-            FD(app, phy, FD.CM, struct.pack(b'BB', bmCapabilities, USBCDCDevice.bDataInterface)),
-            FD(app, phy, FD.EN, struct.pack('B', bmCapabilities)),
+            FD(app, phy, FD.NCM, struct.pack('HB',
+                                             # 2 bytes int (little-endian) bcdNcmVersion
+                                             0x0100,
+                                             # 1 byte bitmap bmNetworkCapabilities
+                                             0xff)),
+            FD(app, phy, FD.EN, struct.pack('<BIHHB',
+                                            # 1 byte int iMACAddress is technically a pointer,
+                                            # but I don't know how to implement that here...
+                                            1,
+
+                                            # 4 bytes bitmap bmEthernetStatistics
+                                            # (all set means all statistics are supported)
+                                            0xffffffff,
+
+                                            # 2 bytes int wMaxSegmentSize typically 1514
+                                            1514,
+
+                                            # 2 bytes bitmap wNumberMCFilters
+                                            0xffff,
+
+                                            # 1 byte int bNumberPowerFilters
+                                            0
+                                            )),
             FD(app, phy, FD.UN, struct.pack(b'BB', USBCDCDevice.bControlInterface, USBCDCDevice.bDataInterface)),
         ]
         interfaces = [
@@ -72,7 +94,7 @@ class USBCdcEemDevice(USBCDCDevice):
                 usb_class=cdc_cls
             )
         ]
-        super(USBCdcEemDevice, self).__init__(
+        super(USBCdcNcmDevice, self).__init__(
             app, phy,
             vid=vid, pid=pid, rev=rev,
             interfaces=interfaces, cs_interfaces=cs_interfaces, cdc_cls=cdc_cls,
@@ -100,4 +122,4 @@ class USBCdcEemDevice(USBCDCDevice):
         )
 
 
-usb_device = USBCdcEemDevice
+usb_device = USBCdcNcmDevice
